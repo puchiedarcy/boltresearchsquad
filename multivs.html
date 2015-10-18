@@ -52,9 +52,12 @@
                         subscribe_key: 'sub-d42094ba-22dd-11e2-9d54-8be12a68240a',
                     });
                     
+                    self = this;
                     pubnub.subscribe({
                         channel: 'boltresearchsquad',
-                        message: function(m){console.log(m)},
+                        message: function(m){
+                            self.receiveScore(m.player, m.squad, m.score);
+                        },
                         error: function (error) {
                             console.log(JSON.stringify(error));
                         }
@@ -82,6 +85,9 @@
                             score: this.props.score
                         }
                     });
+                },
+                receiveScore: function(player, squad, score) {
+                    this.props.receiveScore(player, squad, score);
                 }
             });
             
@@ -97,7 +103,7 @@
                 render: function() {
                     return (
                     <div className="boltresearchsquad">
-                        <Pubnub player={this.state.player} squad={this.state.squad} score={this.state.score} />
+                        <Pubnub player={this.state.player} squad={this.state.squad} score={this.state.score} receiveScore={this.receiveScore} />
                         <Login onLogin={this.onLogin} />
                         <Scoreboard score={this.state.score} />
                     </div>
@@ -115,6 +121,9 @@
                         newState.score++;
                         self.setState(newState);
                     }, 1000);
+                },
+                receiveScore: function (player, squad, score) {
+                    console.log(player + squad + score);
                 }
             });
             
