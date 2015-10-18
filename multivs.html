@@ -14,39 +14,6 @@
    <body>
         <div id="stage"></div>
         
-        <script>
-            var pubnub = PUBNUB({
-                publish_key: 'pub-d5abc57f-7dea-4275-9253-18305c0f27e1',
-                subscribe_key: 'sub-d42094ba-22dd-11e2-9d54-8be12a68240a',
-            });
-            
-            var interval;
-            
-            $("#join").click(function () {
-                var player = $("#player").val();
-                var squad = $("#squad").val();
-                var score = 0;
-                
-                clearInterval(interval);
-                
-                pubnub.unsubscribe({
-                   channel : 'boltresearchsquad',
-                });
-                
-                interval = setInterval(function() {
-                    score++;
-                    pubnub.publish({
-                        channel: 'boltresearchsquad',
-                        message: {
-                            'player': player,
-                            'squad': squad,
-                            'score': score
-                        }
-                    });
-                }, 1000);
-            });
-        </script>
-        
         <script type="text/babel">
             var Login = React.createClass({
                 render: function() {
@@ -80,21 +47,41 @@
             
             var Pubnub = React.createClass({
                 getInitialState: function() {
+                    var pubnub = PUBNUB({
+                        publish_key: 'pub-d5abc57f-7dea-4275-9253-18305c0f27e1',
+                        subscribe_key: 'sub-d42094ba-22dd-11e2-9d54-8be12a68240a',
+                    });
+                    
+                    pubnub.subscribe({
+                        channel: 'boltresearchsquad',
+                        message: function(m){console.log(m)},
+                        error: function (error) {
+                            console.log(JSON.stringify(error));
+                        }
+                    });
+                    
                     return {
-                        pubnub: pubnub.subscribe({
-                            channel: 'boltresearchsquad',
-                            message: function(m){console.log(m)},
-                            error: function (error) {
-                                console.log(JSON.stringify(error));
-                            }
-                        })
+                        channel: 'boltresearchsquad',
+                        pubnub: pubnub
                     }
                 },
                 render: function() {
+                    
+                    this.sendScore();
                     return (
                         <div className="pubnub">
                         </div>
                     );
+                },
+                sendScore: function() {
+                    this.state.pubnub.publish({
+                        channel: this.state.channel,
+                        message: {
+                            player: this.props.player,
+                            squad: this.props.squad,
+                            score: this.props.score
+                        }
+                    });
                 }
             });
             
@@ -110,7 +97,7 @@
                 render: function() {
                     return (
                     <div className="boltresearchsquad">
-                        <Pubnub />
+                        <Pubnub player={this.state.player} squad={this.state.squad} score={this.state.score} />
                         <Login onLogin={this.onLogin} />
                         <Scoreboard score={this.state.score} />
                     </div>
@@ -126,7 +113,6 @@
                     self = this;
                     newState.interval = setInterval(function() {
                         newState.score++;
-                        console.log(newState.score);
                         self.setState(newState);
                     }, 1000);
                 }
