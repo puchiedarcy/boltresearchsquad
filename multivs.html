@@ -39,7 +39,8 @@
                 render: function() {
                     return (
                         <div className="scoreboard">
-                            My Score: {this.props.score}
+                            <div>My Score: {this.props.score}</div>
+                            <div>Last Update: {this.props.lastPlayer} {this.props.lastSquad} {this.props.lastScore}</div>
                         </div>
                     );
                 }
@@ -76,6 +77,11 @@
                         </div>
                     );
                 },
+                shouldComponentUpdate: function(nextProps, nextState) {
+                    return this.props.player != nextProps.player
+                        || this.props.squad != nextProps.squad
+                        || this.props.score != nextProps.score;
+                },
                 sendScore: function() {
                     this.state.pubnub.publish({
                         channel: this.state.channel,
@@ -97,7 +103,10 @@
                         player: '',
                         squad: '',
                         score: 0,
-                        interval: null
+                        interval: null,
+                        lastPlayer: '',
+                        lastSquad: '',
+                        lastScore: 0
                     }
                 },
                 render: function() {
@@ -105,7 +114,7 @@
                     <div className="boltresearchsquad">
                         <Pubnub player={this.state.player} squad={this.state.squad} score={this.state.score} receiveScore={this.receiveScore} />
                         <Login onLogin={this.onLogin} />
-                        <Scoreboard score={this.state.score} />
+                        <Scoreboard score={this.state.score} lastPlayer={this.state.lastPlayer} lastSquad={this.state.lastSquad} lastScore={this.state.lastScore} />
                     </div>
                     )
                 },
@@ -119,11 +128,21 @@
                     self = this;
                     newState.interval = setInterval(function() {
                         newState.score++;
+                        newState.lastPlayer = newState.player;
+                        newState.lastSquad = newState.squad;
+                        newState.lastScore = newState.score;
+                        
                         self.setState(newState);
                     }, 1000);
                 },
                 receiveScore: function (player, squad, score) {
                     console.log(player + squad + score);
+                    var newState = this.state;
+                    newState.lastPlayer = player;
+                    newState.lastSquad = squad;
+                    newState.lastScore = score;
+                    
+                    this.setState(newState);
                 }
             });
             
