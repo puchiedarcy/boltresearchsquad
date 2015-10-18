@@ -72,7 +72,7 @@
                 render: function() {
                     return (
                         <div className="scoreboard">
-                            Scoreboard!
+                            My Score: {this.props.score}
                         </div>
                     );
                 }
@@ -112,7 +112,7 @@
                     <div className="boltresearchsquad">
                         <Pubnub />
                         <Login onLogin={this.onLogin} />
-                        <Scoreboard />
+                        <Scoreboard score={this.state.score} />
                     </div>
                     )
                 },
@@ -123,12 +123,12 @@
                     newState.score = 0;
                     
                     clearInterval(this.state.interval);
+                    self = this;
                     newState.interval = setInterval(function() {
                         newState.score++;
                         console.log(newState.score);
+                        self.setState(newState);
                     }, 1000);
-                    
-                    this.setState(newState);
                 }
             });
             
