@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="static/styles.css" rel="stylesheet" type="text/css">
+
+        <script src="lib/pubnub-3.7.15.min.js"></script>
+        <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+        <script src="https://fb.me/react-0.14.0.js"></script>
+        <script src="https://fb.me/react-dom-0.14.0.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.js"></script>
+        
+        <title>MultiVS</title>
+    </head>
+   <body>
+        <div id="stage">
+            Your Name: <input type="text" id="player" value="puchiedarcy" />
+            Your Team: <input type="text" id="squad" value="BOLT" />
+            <input type="button" id="join" value="Join!" />
+            
+            <div id="scoreboard"></div>
+        </div>
+        
+        <script>
+            var pubnub = PUBNUB({
+                publish_key: 'pub-d5abc57f-7dea-4275-9253-18305c0f27e1',
+                subscribe_key: 'sub-d42094ba-22dd-11e2-9d54-8be12a68240a',
+            });
+            
+            var interval;
+            
+            $("#join").click(function () {
+                var player = $("#player").val();
+                var squad = $("#squad").val();
+                var score = 0;
+                
+                clearInterval(interval);
+                
+                pubnub.unsubscribe({
+                   channel : 'boltresearchsquad',
+                });
+                
+                pubnub.subscribe({
+                    channel: 'boltresearchsquad',
+                    message: function(m){ },
+                    error: function (error) {
+                        console.log(JSON.stringify(error));
+                    }
+                });
+                
+                interval = setInterval(function() {
+                    score++;
+                    pubnub.publish({
+                        channel: 'boltresearchsquad',
+                        message: {
+                            'player': player,
+                            'squad': squad,
+                            'score': score
+                        }
+                    });
+                }, 1000);
+            });
+        </script>
+   </body>
+</html>
