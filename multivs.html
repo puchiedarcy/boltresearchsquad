@@ -36,11 +36,47 @@
             });
             
             var Scoreboard = React.createClass({
+                getInitialState: function() {
+                    return {
+                        scores: []
+                    }
+                },
+                componentWillReceiveProps: function(nextProps) {
+                    var newState = this.state;
+                    
+                    for(var i = newState.scores.length - 1; i >= 0; i--) {
+                        if(newState.scores[i].player === nextProps.lastPlayer) {
+                           newState.scores.splice(i, 1);
+                        }
+                    }
+
+                    newState.scores.push({
+                        player: nextProps.lastPlayer,
+                        squad: nextProps.lastSquad,
+                        score: nextProps.lastScore
+                    });
+                    
+                    function SortByScore(a, b) {
+                        var aScore = a.score;
+                        var bScore = b.score;
+                        return ((aScore < bScore) ? 1 : (aScore > bScore) ? -1 : 0);
+                    }
+                    
+                    newState.scores = newState.scores.sort(SortByScore);
+                    this.setState(newState);
+                },
                 render: function() {
+                    var leaders = this.state.scores.map(function (score) {
+                        return (
+                            <li key={score.player}>{score.squad}: {score.player} [{score.score}]</li>
+                        );
+                    });
                     return (
                         <div className="scoreboard">
                             <div>My Score: {this.props.score}</div>
-                            <div>Last Update: {this.props.lastPlayer} {this.props.lastSquad} {this.props.lastScore}</div>
+                            <ul>
+                                {leaders}
+                            </ul>
                         </div>
                     );
                 }
@@ -136,7 +172,6 @@
                     }, 1000);
                 },
                 receiveScore: function (player, squad, score) {
-                    console.log(player + squad + score);
                     var newState = this.state;
                     newState.lastPlayer = player;
                     newState.lastSquad = squad;
