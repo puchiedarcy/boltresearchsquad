@@ -41,6 +41,9 @@
                         scores: []
                     }
                 },
+                shouldComponentUpdate: function(nextProps, nextState) {
+                    return nextProps.lastPlayer != '';
+                },
                 componentWillReceiveProps: function(nextProps) {
                     var newState = this.state;
                     
