@@ -9,16 +9,10 @@
         <script src="https://fb.me/react-dom-0.14.0.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.js"></script>
         
-        <title>MultiVS</title>
+        <title>BOLT Research Squad</title>
     </head>
    <body>
-        <div id="stage">
-            Your Name: <input type="text" id="player" value="puchiedarcy" />
-            Your Team: <input type="text" id="squad" value="BOLT" />
-            <input type="button" id="join" value="Join!" />
-            
-            <div id="scoreboard"></div>
-        </div>
+        <div id="stage"></div>
         
         <script>
             var pubnub = PUBNUB({
@@ -39,14 +33,6 @@
                    channel : 'boltresearchsquad',
                 });
                 
-                pubnub.subscribe({
-                    channel: 'boltresearchsquad',
-                    message: function(m){ },
-                    error: function (error) {
-                        console.log(JSON.stringify(error));
-                    }
-                });
-                
                 interval = setInterval(function() {
                     score++;
                     pubnub.publish({
@@ -59,6 +45,97 @@
                     });
                 }, 1000);
             });
+        </script>
+        
+        <script type="text/babel">
+            var Login = React.createClass({
+                render: function() {
+                    return (
+                        <div className="login">
+                            <form className="loginForm" onSubmit={this.handleSubmit}>
+                                Your Name: <input type="text" ref="player" defaultValue='puchiedarcy' />
+                                Your Squad: <input type="text" ref="squad" defaultValue='BOLT' />
+                                <input type="submit" value="Join!" />
+                            </form>
+                        </div>
+                    );
+                },
+                handleSubmit: function(e) {
+                    e.preventDefault();
+                    var player = this.refs.player.value.trim();
+                    var squad = this.refs.squad.value.trim();
+                    this.props.onLogin(player, squad);
+                }
+            });
+            
+            var Scoreboard = React.createClass({
+                render: function() {
+                    return (
+                        <div className="scoreboard">
+                            Scoreboard!
+                        </div>
+                    );
+                }
+            });
+            
+            var Pubnub = React.createClass({
+                getInitialState: function() {
+                    return {
+                        pubnub: pubnub.subscribe({
+                            channel: 'boltresearchsquad',
+                            message: function(m){console.log(m)},
+                            error: function (error) {
+                                console.log(JSON.stringify(error));
+                            }
+                        })
+                    }
+                },
+                render: function() {
+                    return (
+                        <div className="pubnub">
+                        </div>
+                    );
+                }
+            });
+            
+            var BoltResearchSquad = React.createClass({
+                getInitialState: function() {
+                    return {
+                        player: '',
+                        squad: '',
+                        score: 0,
+                        interval: null
+                    }
+                },
+                render: function() {
+                    return (
+                    <div className="boltresearchsquad">
+                        <Pubnub />
+                        <Login onLogin={this.onLogin} />
+                        <Scoreboard />
+                    </div>
+                    )
+                },
+                onLogin: function(player, squad) {
+                    var newState = this.state;
+                    newState.player = player;
+                    newState.squad = squad;
+                    newState.score = 0;
+                    
+                    clearInterval(this.state.interval);
+                    newState.interval = setInterval(function() {
+                        newState.score++;
+                        console.log(newState.score);
+                    }, 1000);
+                    
+                    this.setState(newState);
+                }
+            });
+            
+            ReactDOM.render(
+                <BoltResearchSquad />,
+                document.getElementById('stage')
+            );
         </script>
    </body>
 </html>
